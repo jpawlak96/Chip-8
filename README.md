@@ -1,5 +1,5 @@
 # CHIP-8-Emulator
-Basic implementation of chip-8 emulator in Java. Currently, all interactions happen at the terminal
+Basic implementation of chip-8[^1] emulator in Java. Currently, all interactions happen at the terminal
 
 ### Changelog
 * 18.03.2023: Emulator support only few instructions needed to run the simplest program - IBM Logo 
@@ -46,3 +46,4 @@ Basic implementation of chip-8 emulator in Java. Currently, all interactions hap
                                                                     
                                                                     
     ```
+[^1]: https://en.wikipedia.org/wiki/CHIP-8

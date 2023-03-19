@@ -8,17 +8,15 @@ import java.util.Arrays;
 import java.util.Random;
 
 public class Processor {
-    public static final String FILENAME = "IBMLogo.ch8";
-    public static final int CYCLES_TO_EXECUTE = 22;
-    
+    private static final String FILENAME = "IBMLogo.ch8";
+    private static final int CYCLES_TO_EXECUTE = 22;
     private static final char PIXEL_ON_CHAR = '#';
     private static final char PIXEL_OFF_CHAR = ' ';
 
-    private static final int DISPLAY_WIDTH = 64;
-    private static final int DISPLAY_HEIGHT = 32;
+    static final int DISPLAY_WIDTH = 64;
+    static final int DISPLAY_HEIGHT = 32;
+    static final int FIRST_PROG_INSTR_ADDRESS = 0x200;
 
-    private static int stepCounter = 0;
-    
     private static final int[] FONTS = new int[]{
             0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
             0x20, 0x60, 0x20, 0x20, 0x70, // 1
@@ -38,21 +36,23 @@ public class Processor {
             0xF0, 0x80, 0xF0, 0x80, 0x80  // F
     };
 
-    private final int[] register = new int[16];
+    private static final Random randomGenerator = new Random();
 
-    private int delayTimer = 0x0;
-    private int soundTimer = 0x0;
+    private static int stepCounter = 0;
 
-    private int programCounter = 0x200;
-    private int stackPointer = 0x0;
-    private int indexRegister = 0x0;
-    private int opcode = 0x0;
+    final int[] register = new int[16];
 
-    private final int[] memory = new int[4096];
-    private final boolean[][] display = new boolean[DISPLAY_WIDTH][DISPLAY_HEIGHT];
-    private final boolean[] keys = new boolean[16];
+    int delayTimer = 0x0;
+    int soundTimer = 0x0;
 
-    private final Random randomGenerator = new Random();
+    int programCounter = FIRST_PROG_INSTR_ADDRESS;
+    int stackPointer = 0x0;
+    int indexRegister = 0x0;
+    int opcode = 0x0;
+
+    final int[] memory = new int[4096];
+    final boolean[][] display = new boolean[DISPLAY_WIDTH][DISPLAY_HEIGHT];
+    final boolean[] keys = new boolean[16];
 
     public static void main(String[] args) throws IOException, URISyntaxException {
         Processor processor = new Processor();
@@ -73,18 +73,16 @@ public class Processor {
         System.out.println("--- LOADING PROGRAM ---");
         Path path = Path.of(ClassLoader.getSystemResource(filename).toURI());
         byte[] program = Files.readAllBytes(path);
-        for (int index = 0; index < FONTS.length; index++) {
-            memory[index] = FONTS[index];
-        }
+        System.arraycopy(FONTS, 0, memory, 0, FONTS.length);
         for (int index = 0; index < program.length; index++) {
-            memory[0x200 + index] = program[index] & 0xFF;
+            memory[FIRST_PROG_INSTR_ADDRESS + index] = program[index] & 0xFF;
         }
         System.out.println("--- LOADED ---");
     }
 
     private void dumpMemory(boolean dumpAll) {
         System.out.println("--- MEMORY DUMP ---");
-        int startAddress = dumpAll ? 0x0 : 0x200;
+        int startAddress = dumpAll ? 0x0 : FIRST_PROG_INSTR_ADDRESS;
         for (int index = startAddress; index < memory.length; index += 2) {
             int code = (memory[index] << 8) | memory[index + 1];
             if (code == 0) {
@@ -113,11 +111,11 @@ public class Processor {
         }
     }
 
-    private void fetchInstruction() {
+    void fetchInstruction() {
         opcode = (memory[programCounter] << 8) | memory[programCounter + 1];
     }
 
-    private void decodeInstruction() {
+    void decodeInstruction() {
         int temp;
         switch (opcode) {
             case 0x00E0:
@@ -136,12 +134,7 @@ public class Processor {
                 return;
             case 0x7000:
                 temp = (opcode & 0x0F00) >>> 8;
-                int result = register[temp] + (opcode & 0x00FF);
-                if (result >= 256) {
-                    register[temp] = result - 256;
-                } else {
-                    register[temp] = result;
-                }
+                register[temp] += (opcode & 0x00FF);
                 programCounter += 2;
                 return;
             case 0xA000:

@@ -2,7 +2,7 @@
 Basic implementation of chip-8[^1] emulator in Java. Currently, all interactions happen at the terminal
 
 ### Changelog
-* 18.03.2023: Emulator support only few instructions needed to run the simplest program - IBM Logo 
+* 18.03.2023: Emulator support only few instructions needed to run the simplest program - IBM Logo.
     > List of current instructions:
     > * 00E0 (clear screen)
     > * 1NNN (jump to NNN)
@@ -46,4 +46,6 @@ Basic implementation of chip-8[^1] emulator in Java. Currently, all interactions
                                                                     
                                                                     
     ```
+* 19.03.2023: Added processor tests. Creating the tests helped improve the 7XNN instruction to be more consistent with the documentation.
+
 [^1]: https://en.wikipedia.org/wiki/CHIP-8

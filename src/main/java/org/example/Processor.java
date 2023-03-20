@@ -4,65 +4,33 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Random;
 
 public class Processor {
     private static final String FILENAME = "IBMLogo.ch8";
     private static final int CYCLES_TO_EXECUTE = 22;
-    private static final char PIXEL_ON_CHAR = '#';
+    private static final char PIXEL_ON_CHAR = '■';
     private static final char PIXEL_OFF_CHAR = ' ';
 
     static final int DISPLAY_WIDTH = 64;
     static final int DISPLAY_HEIGHT = 32;
     static final int FIRST_PROG_INSTR_ADDRESS = 0x200;
 
-    private static final int[] FONTS = new int[]{
-            0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
-            0x20, 0x60, 0x20, 0x20, 0x70, // 1
-            0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
-            0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
-            0x90, 0x90, 0xF0, 0x10, 0x10, // 4
-            0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
-            0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
-            0xF0, 0x10, 0x20, 0x40, 0x40, // 7
-            0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
-            0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
-            0xF0, 0x90, 0xF0, 0x90, 0x90, // A
-            0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
-            0xF0, 0x80, 0x80, 0x80, 0xF0, // C
-            0xE0, 0x90, 0x90, 0x90, 0xE0, // D
-            0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
-            0xF0, 0x80, 0xF0, 0x80, 0x80  // F
-    };
-
-    private static final Random randomGenerator = new Random();
-
-    private static int stepCounter = 0;
-
     final int[] register = new int[16];
-
-    int delayTimer = 0x0;
-    int soundTimer = 0x0;
-
     int programCounter = FIRST_PROG_INSTR_ADDRESS;
-    int stackPointer = 0x0;
     int indexRegister = 0x0;
     int opcode = 0x0;
 
     final int[] memory = new int[4096];
     final boolean[][] display = new boolean[DISPLAY_WIDTH][DISPLAY_HEIGHT];
-    final boolean[] keys = new boolean[16];
 
     public static void main(String[] args) throws IOException, URISyntaxException {
         Processor processor = new Processor();
         processor.loadProgram(FILENAME);
-        processor.dumpMemory(false);
+        processor.dumpMemory();
         processor.cleanScreen();
         System.out.println("--- RUN PROGRAM ---");
         for (int i = 0; i < CYCLES_TO_EXECUTE; i++) {
             processor.fetchInstruction();
-            System.out.printf("Step: %d %s%n", stepCounter++, processor);
             processor.decodeInstruction();
         }
         System.out.println("--- END PROGRAM ---");
@@ -73,17 +41,15 @@ public class Processor {
         System.out.println("--- LOADING PROGRAM ---");
         Path path = Path.of(ClassLoader.getSystemResource(filename).toURI());
         byte[] program = Files.readAllBytes(path);
-        System.arraycopy(FONTS, 0, memory, 0, FONTS.length);
         for (int index = 0; index < program.length; index++) {
             memory[FIRST_PROG_INSTR_ADDRESS + index] = program[index] & 0xFF;
         }
         System.out.println("--- LOADED ---");
     }
 
-    private void dumpMemory(boolean dumpAll) {
+    private void dumpMemory() {
         System.out.println("--- MEMORY DUMP ---");
-        int startAddress = dumpAll ? 0x0 : FIRST_PROG_INSTR_ADDRESS;
-        for (int index = startAddress; index < memory.length; index += 2) {
+        for (int index = FIRST_PROG_INSTR_ADDRESS; index < memory.length; index += 2) {
             int code = (memory[index] << 8) | memory[index + 1];
             if (code == 0) {
                 continue;
@@ -165,17 +131,5 @@ public class Processor {
                 return;
         }
         programCounter += 2;
-    }
-
-    @Override
-    public String toString() {
-        return "[registers=" + Arrays.toString(register) +
-                ", programCounter=0x" + Integer.toHexString(programCounter) +
-                ", opcode=0x" + Integer.toHexString(opcode) +
-                ", indexRegister=0x" + Integer.toHexString(indexRegister) +
-                ", stackPointer=0x" + Integer.toHexString(stackPointer) +
-                ", delayTimer=0x" + Integer.toHexString(delayTimer) +
-                ", soundTimer=0x" + Integer.toHexString(soundTimer) +
-                "]";
     }
 }

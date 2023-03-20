@@ -10,7 +10,7 @@ import java.util.Random;
 public class Processor {
     private static final String FILENAME = "IBMLogo.ch8";
     private static final int CYCLES_TO_EXECUTE = 22;
-    private static final char PIXEL_ON_CHAR = '#';
+    private static final char PIXEL_ON_CHAR = '■';
     private static final char PIXEL_OFF_CHAR = ' ';
 
     static final int DISPLAY_WIDTH = 64;
@@ -113,6 +113,7 @@ public class Processor {
 
     void fetchInstruction() {
         opcode = (memory[programCounter] << 8) | memory[programCounter + 1];
+        programCounter += 2;
     }
 
     void decodeInstruction() {
@@ -120,7 +121,6 @@ public class Processor {
         switch (opcode) {
             case 0x00E0:
                 cleanScreen();
-                programCounter += 2;
                 return;
         }
         switch (opcode & 0xF000) {
@@ -130,16 +130,13 @@ public class Processor {
             case 0x6000:
                 temp = (opcode & 0x0F00) >>> 8;
                 register[temp] = opcode & 0x00FF;
-                programCounter += 2;
                 return;
             case 0x7000:
                 temp = (opcode & 0x0F00) >>> 8;
                 register[temp] += (opcode & 0x00FF);
-                programCounter += 2;
                 return;
             case 0xA000:
                 indexRegister = opcode & 0x0FFF;
-                programCounter += 2;
                 return;
             case 0xD000:
                 int xPos = register[(opcode & 0x0F00) >>> 8] % DISPLAY_WIDTH;
@@ -161,10 +158,8 @@ public class Processor {
                         }
                     }
                 }
-                programCounter += 2;
                 return;
         }
-        programCounter += 2;
     }
 
     @Override

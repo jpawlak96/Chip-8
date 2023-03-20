@@ -7,8 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ProcessorTest {
-    private static final int SECOND_PROG_INSTR_ADDRESS = Processor.FIRST_PROG_INSTR_ADDRESS + 2;
-
     private Processor processor;
 
     @BeforeEach
@@ -27,6 +25,7 @@ class ProcessorTest {
         processor.fetchInstruction();
 
         assertEquals(opcode, processor.opcode);
+        assertEquals(address + 2, processor.programCounter);
     }
 
     @Test
@@ -50,7 +49,6 @@ class ProcessorTest {
         processor.decodeInstruction();
 
         assertEquals(value, processor.register[registerSelector >> 8]);
-        assertEquals(SECOND_PROG_INSTR_ADDRESS, processor.programCounter);
     }
 
     @Test
@@ -65,7 +63,6 @@ class ProcessorTest {
         processor.decodeInstruction();
 
         assertEquals(value + registerInitValue, processor.register[registerSelector >> 8]);
-        assertEquals(SECOND_PROG_INSTR_ADDRESS, processor.programCounter);
     }
 
     @Test
@@ -77,7 +74,6 @@ class ProcessorTest {
         processor.decodeInstruction();
 
         assertEquals(value, processor.indexRegister);
-        assertEquals(SECOND_PROG_INSTR_ADDRESS, processor.programCounter);
     }
 
     @Test
@@ -103,7 +99,6 @@ class ProcessorTest {
             }
         }
         assertTrue(isEmpty);
-        assertEquals(SECOND_PROG_INSTR_ADDRESS, processor.programCounter);
     }
 
     @Test
@@ -137,7 +132,6 @@ class ProcessorTest {
             }
             assertEquals(sprite[y], spriteRow);
         }
-        assertEquals(SECOND_PROG_INSTR_ADDRESS, processor.programCounter);
         assertEquals(0, processor.register[0xF]);
     }
 }

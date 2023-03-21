@@ -1,4 +1,4 @@
-package org.example;
+package org.example.processor;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,11 +9,13 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 class ProcessorTest {
+    private final byte[] emptyProgram = new byte[]{};
     private Processor processor;
 
     @BeforeEach
     public void initProcessor() {
         processor = spy(Processor.class);
+        processor.init(emptyProgram);
     }
 
     @Test

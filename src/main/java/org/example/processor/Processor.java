@@ -1,21 +1,12 @@
-package org.example;
+package org.example.processor;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Random;
 
 public class Processor {
-    private static final String FILENAME = "test_roms/test_opcode.ch8";
-    private static final int CYCLES_TO_EXECUTE = 220;
-    private static final char PIXEL_ON_CHAR = ' ';
-    private static final char PIXEL_OFF_CHAR = '█';
-
-    static final int DISPLAY_WIDTH = 64;
-    static final int DISPLAY_HEIGHT = 32;
-    static final int FIRST_PROG_INSTR_ADDRESS = 0x200;
+    public static final int FIRST_PROG_INSTR_ADDRESS = 0x200;
+    public static final int DISPLAY_WIDTH = 64;
+    public static final int DISPLAY_HEIGHT = 32;
 
     private static final int[] FONTS = new int[]{
             0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
@@ -38,36 +29,52 @@ public class Processor {
 
     private static final Random randomGenerator = new Random();
 
-    private static int stepCounter = 0;
+    int delayTimer;
+    int soundTimer;
 
-    final int[] register = new int[16];
+    int programCounter;
+    int stackPointer;
+    int indexRegister;
+    int opcode;
 
-    int delayTimer = 0x0;
-    int soundTimer = 0x0;
+    int[] register;
+    int[] stack;
+    int[] memory;
+    boolean[][] display;
+    boolean[] keys;
 
-    int programCounter = FIRST_PROG_INSTR_ADDRESS;
-    int stackPointer = 0x0;
-    int indexRegister = 0x0;
-    int opcode = 0x0;
+    public void init(byte[] program) {
+        delayTimer = 0x0;
+        soundTimer = 0x0;
+        programCounter = FIRST_PROG_INSTR_ADDRESS;
+        stackPointer = 0x0;
+        indexRegister = 0x0;
+        opcode = 0x0;
+        register = new int[16];
+        stack = new int[16];
+        memory = new int[4096];
+        display = new boolean[DISPLAY_WIDTH][DISPLAY_HEIGHT];
+        keys = new boolean[16];
 
-    final int[] stack = new int[16];
-    final int[] memory = new int[4096];
-    final boolean[][] display = new boolean[DISPLAY_WIDTH][DISPLAY_HEIGHT];
-    final boolean[] keys = new boolean[16];
+        loadMemory(program);
+        cleanScreen();
+    }
 
-    public static void main(String[] args) throws IOException, URISyntaxException {
-        Processor processor = new Processor();
-        processor.loadProgram(FILENAME);
-        processor.dumpMemory(false);
-        processor.cleanScreen();
-        System.out.println("--- RUN PROGRAM ---");
-        for (int i = 0; i < CYCLES_TO_EXECUTE; i++) {
-            processor.fetchInstruction();
-            System.out.printf("Step: %d %s%n", stepCounter++, processor);
-            processor.decodeInstruction();
-        }
-        System.out.println("--- END PROGRAM ---");
-        processor.dumpScreen();
+    public void doCycle() {
+        fetchInstruction();
+        decodeInstruction();
+    }
+
+    public int[] getMemory() {
+        return memory;
+    }
+
+    public boolean[][] getDisplay() {
+        return display;
+    }
+
+    public boolean isSound() {
+        return soundTimer > 0;
     }
 
     public void decrementTimers() {
@@ -77,45 +84,14 @@ public class Processor {
             soundTimer--;
     }
 
-    public boolean isSound() {
-        return soundTimer > 0;
-    }
-
-    private void loadProgram(String filename) throws IOException, URISyntaxException {
-        System.out.println("--- LOADING PROGRAM ---");
-        Path path = Path.of(ClassLoader.getSystemResource(filename).toURI());
-        byte[] program = Files.readAllBytes(path);
+    void loadMemory(byte[] program) {
         System.arraycopy(FONTS, 0, memory, 0, FONTS.length);
         for (int index = 0; index < program.length; index++) {
             memory[FIRST_PROG_INSTR_ADDRESS + index] = program[index] & 0xFF;
         }
-        System.out.println("--- LOADED ---");
     }
 
-    private void dumpMemory(boolean dumpAll) {
-        System.out.println("--- MEMORY DUMP ---");
-        int startAddress = dumpAll ? 0x0 : FIRST_PROG_INSTR_ADDRESS;
-        for (int index = startAddress; index < memory.length; index += 2) {
-            int code = (memory[index] << 8) | memory[index + 1];
-            if (code == 0) {
-                continue;
-            }
-            System.out.printf("%03x: %04x%n", index, code);
-        }
-    }
-
-    private void dumpScreen() {
-        System.out.println("--- SCREEN DUMP ---");
-        for (int y = 0; y < DISPLAY_HEIGHT; y++) {
-            StringBuilder screenRow = new StringBuilder();
-            for (int x = 0; x < DISPLAY_WIDTH; x++) {
-                screenRow.append(display[x][y] ? PIXEL_ON_CHAR : PIXEL_OFF_CHAR);
-            }
-            System.out.println(screenRow);
-        }
-    }
-
-    private void cleanScreen() {
+    void cleanScreen() {
         for (int y = 0; y < DISPLAY_HEIGHT; y++) {
             for (int x = 0; x < DISPLAY_WIDTH; x++) {
                 display[x][y] = false;
@@ -322,7 +298,6 @@ public class Processor {
                         }
                     }
                 }
-                return;
         }
     }
 

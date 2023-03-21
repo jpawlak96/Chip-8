@@ -5,8 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class ProcessorTest {
     private final byte[] emptyProgram = new byte[]{};
@@ -16,6 +15,29 @@ class ProcessorTest {
     public void initProcessor() {
         processor = spy(Processor.class);
         processor.init(emptyProgram);
+    }
+
+    @Test
+    void shouldCleanScreenWhenCleanScreenTriggered() {
+        for (int x = 0; x < Processor.DISPLAY_WIDTH; x++) {
+            for (int y = 0; y < Processor.DISPLAY_HEIGHT; y++) {
+                processor.display[x][y] = true;
+            }
+        }
+        
+        processor.cleanScreen();
+        
+        boolean isEmpty = true;
+        testLoop:
+        for (int x = 0; x < Processor.DISPLAY_WIDTH; x++) {
+            for (int y = 0; y < Processor.DISPLAY_HEIGHT; y++) {
+                if (processor.display[x][y]) {
+                    isEmpty = false;
+                    break testLoop;
+                }
+            }
+        }
+        assertTrue(isEmpty);
     }
 
     @Test
@@ -30,6 +52,28 @@ class ProcessorTest {
 
         assertEquals(opcode, processor.opcode);
         assertEquals(address + 2, processor.programCounter);
+    }
+
+    @Test
+    void shouldCleanScreenWhen00E0Opcode() {
+        clearInvocations(processor);
+
+        processor.opcode = 0x00E0;
+        processor.decodeInstruction();
+
+        verify(processor).cleanScreen();
+    }
+
+    @Test
+    void shouldReturnFromSubroutineWhen00EEOpcode() {
+        int instruction = 0x00EE;
+
+        processor.stackPointer = 0x0;
+        processor.stack[processor.stackPointer] = 0x1234;
+        processor.opcode = instruction;
+        processor.decodeInstruction();
+
+        assertEquals(processor.stack[processor.stackPointer], processor.programCounter);
     }
 
     @Test
@@ -321,43 +365,6 @@ class ProcessorTest {
 
         assertTrue(processor.register[registerSelector >>> 8] >= 0);
         assertTrue(processor.register[registerSelector >>> 8] <= mask);
-    }
-
-    @Test
-    void shouldCleanScreenWhen00E0Opcode() {
-        int instruction = 0x00E0;
-
-        for (int x = 0; x < Processor.DISPLAY_WIDTH; x++) {
-            for (int y = 0; y < Processor.DISPLAY_HEIGHT; y++) {
-                processor.display[x][y] = true;
-            }
-        }
-        processor.opcode = instruction;
-        processor.decodeInstruction();
-
-        boolean isEmpty = true;
-        testLoop:
-        for (int x = 0; x < Processor.DISPLAY_WIDTH; x++) {
-            for (int y = 0; y < Processor.DISPLAY_HEIGHT; y++) {
-                if (processor.display[x][y]) {
-                    isEmpty = false;
-                    break testLoop;
-                }
-            }
-        }
-        assertTrue(isEmpty);
-    }
-
-    @Test
-    void shouldReturnFromSubroutineWhen00EEOpcode() {
-        int instruction = 0x00EE;
-
-        processor.stackPointer = 0x0;
-        processor.stack[processor.stackPointer] = 0x1234;
-        processor.opcode = instruction;
-        processor.decodeInstruction();
-
-        assertEquals(processor.stack[processor.stackPointer], processor.programCounter);
     }
 
     @Test

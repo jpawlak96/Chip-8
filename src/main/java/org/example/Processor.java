@@ -10,8 +10,8 @@ import java.util.Random;
 public class Processor {
     private static final String FILENAME = "IBMLogo.ch8";
     private static final int CYCLES_TO_EXECUTE = 22;
-    private static final char PIXEL_ON_CHAR = '■';
-    private static final char PIXEL_OFF_CHAR = ' ';
+    private static final char PIXEL_ON_CHAR = ' ';
+    private static final char PIXEL_OFF_CHAR = '█';
 
     static final int DISPLAY_WIDTH = 64;
     static final int DISPLAY_HEIGHT = 32;
@@ -50,6 +50,7 @@ public class Processor {
     int indexRegister = 0x0;
     int opcode = 0x0;
 
+    final int[] stack = new int[16];
     final int[] memory = new int[4096];
     final boolean[][] display = new boolean[DISPLAY_WIDTH][DISPLAY_HEIGHT];
     final boolean[] keys = new boolean[16];
@@ -67,6 +68,17 @@ public class Processor {
         }
         System.out.println("--- END PROGRAM ---");
         processor.dumpScreen();
+    }
+
+    public void decrementTimers() {
+        if (delayTimer > 0)
+            delayTimer--;
+        if (soundTimer > 0)
+            soundTimer--;
+    }
+
+    public boolean isSound() {
+        return soundTimer > 0;
     }
 
     private void loadProgram(String filename) throws IOException, URISyntaxException {
@@ -111,32 +123,184 @@ public class Processor {
         }
     }
 
+    private int waitForInput() {
+        return 0;
+    }
+
     void fetchInstruction() {
         opcode = (memory[programCounter] << 8) | memory[programCounter + 1];
         programCounter += 2;
     }
 
     void decodeInstruction() {
-        int temp;
+        int x, y;
         switch (opcode) {
             case 0x00E0:
                 cleanScreen();
+                return;
+            case 0x00EE:
+                programCounter = stack[stackPointer];
+                if (stackPointer > 0)
+                    stackPointer--;
+                return;
+        }
+        switch (opcode & 0xF0FF) {
+            case 0xE09E:
+                x = (opcode & 0x0F00) >>> 8;
+                if (keys[register[x]])
+                    programCounter += 2;
+                return;
+            case 0xE0A1:
+                x = (opcode & 0x0F00) >>> 8;
+                if (!keys[register[x]])
+                    programCounter += 2;
+                return;
+            case 0xF007:
+                x = (opcode & 0x0F00) >>> 8;
+                register[x] = delayTimer;
+                return;
+            case 0xF00A:
+                x = (opcode & 0x0F00) >>> 8;
+                register[x] = waitForInput();
+                return;
+            case 0xF015:
+                x = (opcode & 0x0F00) >>> 8;
+                delayTimer = register[x];
+                return;
+            case 0xF018:
+                x = (opcode & 0x0F00) >>> 8;
+                soundTimer = register[x];
+                return;
+            case 0xF01E:
+                x = (opcode & 0x0F00) >>> 8;
+                indexRegister += register[x];
+                return;
+            case 0xF029:
+                x = (opcode & 0x0F00) >>> 8;
+                indexRegister = register[x] * 5;
+                return;
+            case 0xF033:
+                x = (opcode & 0x0F00) >>> 8;
+                memory[indexRegister] = register[x] / 100;
+                memory[indexRegister + 1] = (register[x] - memory[indexRegister] * 100) / 10;
+                memory[indexRegister + 2] = register[x] - memory[indexRegister] * 100 - memory[indexRegister + 1] * 10;
+                return;
+            case 0xF055:
+                x = (opcode & 0x0F00) >>> 8;
+                System.arraycopy(register, 0, memory, indexRegister, x + 1);
+                return;
+            case 0xF065:
+                x = (opcode & 0x0F00) >>> 8;
+                System.arraycopy(memory, indexRegister, register, 0, x + 1);
+                return;
+        }
+        switch (opcode & 0xF00F) {
+            case 0x5000:
+                x = (opcode & 0x0F00) >>> 8;
+                y = (opcode & 0x00F0) >>> 4;
+                if (register[x] == register[y])
+                    programCounter += 2;
+                return;
+            case 0x8000:
+                x = (opcode & 0x0F00) >>> 8;
+                y = (opcode & 0x00F0) >>> 4;
+                register[x] = register[y];
+                return;
+            case 0x8001:
+                x = (opcode & 0x0F00) >>> 8;
+                y = (opcode & 0x00F0) >>> 4;
+                register[x] |= register[y];
+                return;
+            case 0x8002:
+                x = (opcode & 0x0F00) >>> 8;
+                y = (opcode & 0x00F0) >>> 4;
+                register[x] &= register[y];
+                return;
+            case 0x8003:
+                x = (opcode & 0x0F00) >>> 8;
+                y = (opcode & 0x00F0) >>> 4;
+                register[x] ^= register[y];
+                return;
+            case 0x8004:
+                x = (opcode & 0x0F00) >>> 8;
+                y = (opcode & 0x00F0) >>> 4;
+                register[x] = register[x] + register[y];
+                if (register[x] > 0xFF) {
+                    register[x] &= 0xFF;
+                    register[0xF] = 1;
+                }
+                return;
+            case 0x8005:
+                x = (opcode & 0x0F00) >>> 8;
+                y = (opcode & 0x00F0) >>> 4;
+                register[x] = register[x] - register[y];
+                if (register[x] < 0x0) {
+                    register[x] &= 0xFF;
+                    register[0xF] = 1;
+                }
+                return;
+            case 0x8006:
+                x = (opcode & 0x0F00) >>> 8;
+                register[0xF] = register[x] & 0x01;
+                register[x] = (register[x] / 2) & 0xFF;
+                return;
+            case 0x8007:
+                x = (opcode & 0x0F00) >>> 8;
+                y = (opcode & 0x00F0) >>> 4;
+                register[x] = register[y] - register[x];
+                if (register[x] < 0x0) {
+                    register[x] &= 0xFF;
+                    register[0xF] = 1;
+                }
+                return;
+            case 0x800E:
+                x = (opcode & 0x0F00) >>> 8;
+                register[0xF] = register[x] & 0x80;
+                register[x] = (register[x] * 2) & 0xFF;
+                return;
+            case 0x9000:
+                x = (opcode & 0x0F00) >>> 8;
+                y = (opcode & 0x00F0) >>> 4;
+                if (register[x] != register[y])
+                    programCounter += 2;
                 return;
         }
         switch (opcode & 0xF000) {
             case 0x1000:
                 programCounter = opcode & 0x0FFF;
                 return;
+            case 0x2000:
+                stackPointer++;
+                stack[stackPointer] = programCounter;
+                programCounter = opcode & 0x0FFF;
+                return;
+            case 0x3000:
+                x = (opcode & 0x0F00) >>> 8;
+                if (register[x] == (opcode & 0x00FF))
+                    programCounter += 2;
+                return;
+            case 0x4000:
+                x = (opcode & 0x0F00) >>> 8;
+                if (register[x] != (opcode & 0x00FF))
+                    programCounter += 2;
+                return;
             case 0x6000:
-                temp = (opcode & 0x0F00) >>> 8;
-                register[temp] = opcode & 0x00FF;
+                x = (opcode & 0x0F00) >>> 8;
+                register[x] = opcode & 0x00FF;
                 return;
             case 0x7000:
-                temp = (opcode & 0x0F00) >>> 8;
-                register[temp] += (opcode & 0x00FF);
+                x = (opcode & 0x0F00) >>> 8;
+                register[x] = (register[x] + (opcode & 0x00FF)) & 0xFF;
                 return;
             case 0xA000:
                 indexRegister = opcode & 0x0FFF;
+                return;
+            case 0xB000:
+                programCounter = register[0x0] + (opcode & 0x0FFF);
+                return;
+            case 0xC000:
+                x = (opcode & 0x0F00) >>> 8;
+                register[x] = randomGenerator.nextInt(0xFF) & (opcode & 0x00FF);
                 return;
             case 0xD000:
                 int xPos = register[(opcode & 0x0F00) >>> 8] % DISPLAY_WIDTH;

@@ -13,8 +13,7 @@ class ProcessorTest {
 
     @BeforeEach
     public void initProcessor() {
-        processor = spy(Processor.class);
-        processor.init(emptyProgram);
+        processor = spy(new Processor(emptyProgram));
     }
 
     @Test
@@ -24,9 +23,9 @@ class ProcessorTest {
                 processor.display[x][y] = true;
             }
         }
-        
+
         processor.cleanScreen();
-        
+
         boolean isEmpty = true;
         testLoop:
         for (int x = 0; x < Processor.DISPLAY_WIDTH; x++) {
@@ -134,7 +133,7 @@ class ProcessorTest {
 
     @Test
     void shouldSkipIfVXEqualNNWhen5XY0Opcode() {
-        int instruction = 0x4000;
+        int instruction = 0x5000;
         int registerXSelector = 0x0300;
         int registerYSelector = 0x0040;
         int registersValue = 0x0045;

@@ -20,9 +20,8 @@ public class Window {
     private static Processor processor;
 
     public static void main(String[] args) throws IOException, URISyntaxException {
-        processor = new Processor();
         byte[] program = loadProgram(FILENAME);
-        processor.init(program);
+        processor = new Processor(program);
         dumpMemory(false);
         System.out.println("--- RUN PROGRAM ---");
         for (int i = 0; i < CYCLES_TO_EXECUTE; i++) {

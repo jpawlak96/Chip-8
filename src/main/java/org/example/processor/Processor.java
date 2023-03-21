@@ -43,6 +43,10 @@ public class Processor {
     boolean[][] display;
     boolean[] keys;
 
+    public Processor(byte[] program) {
+        init(program);
+    }
+        
     public void init(byte[] program) {
         delayTimer = 0x0;
         soundTimer = 0x0;

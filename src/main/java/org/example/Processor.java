@@ -8,8 +8,8 @@ import java.util.Arrays;
 import java.util.Random;
 
 public class Processor {
-    private static final String FILENAME = "IBMLogo.ch8";
-    private static final int CYCLES_TO_EXECUTE = 22;
+    private static final String FILENAME = "test_roms/test_opcode.ch8";
+    private static final int CYCLES_TO_EXECUTE = 220;
     private static final char PIXEL_ON_CHAR = ' ';
     private static final char PIXEL_OFF_CHAR = '█';
 
@@ -123,7 +123,7 @@ public class Processor {
         }
     }
 
-    private int waitForInput() {
+    int waitForInput() {
         return 0;
     }
 
@@ -173,7 +173,7 @@ public class Processor {
                 return;
             case 0xF01E:
                 x = (opcode & 0x0F00) >>> 8;
-                indexRegister += register[x];
+                indexRegister = (indexRegister + register[x]) & 0xFF;
                 return;
             case 0xF029:
                 x = (opcode & 0x0F00) >>> 8;
@@ -296,11 +296,11 @@ public class Processor {
                 indexRegister = opcode & 0x0FFF;
                 return;
             case 0xB000:
-                programCounter = register[0x0] + (opcode & 0x0FFF);
+                programCounter = (register[0x0] + (opcode & 0x0FFF)) & 0xFFF;
                 return;
             case 0xC000:
                 x = (opcode & 0x0F00) >>> 8;
-                register[x] = randomGenerator.nextInt(0xFF) & (opcode & 0x00FF);
+                register[x] = randomGenerator.nextInt(0xFF + 1) & (opcode & 0x00FF);
                 return;
             case 0xD000:
                 int xPos = register[(opcode & 0x0F00) >>> 8] % DISPLAY_WIDTH;

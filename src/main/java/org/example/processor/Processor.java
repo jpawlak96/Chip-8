@@ -116,11 +116,6 @@ public class Processor {
         isDisplayUpdated = true;
     }
 
-    int waitForInput() {
-        // TODO: implement
-        return 0;
-    }
-
     void fetchInstruction() {
         opcode = (memory[programCounter] << 8) | memory[programCounter + 1];
         programCounter += 2;
@@ -153,7 +148,13 @@ public class Processor {
                 return;
             case 0xF00A:
                 x = (opcode & 0x0F00) >>> 8;
-                register[x] = waitForInput();
+                for (int i = 0; i < keys.length; i++) {
+                    if (keys[i]) {
+                        register[x] = i;
+                        return;
+                    }
+                }
+                programCounter -=2;
                 return;
             case 0xF015:
                 x = (opcode & 0x0F00) >>> 8;

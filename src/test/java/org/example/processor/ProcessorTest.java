@@ -450,8 +450,8 @@ class ProcessorTest {
         int instruction = 0xF00A;
         int registerSelector = 0x0800;
         int pressedKey = 0x0C;
-
-        when(processor.waitForInput()).thenReturn(pressedKey);
+        
+        processor.keys[pressedKey] = true;
         processor.opcode = instruction | registerSelector;
         processor.decodeInstruction();
 

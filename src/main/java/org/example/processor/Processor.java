@@ -305,7 +305,8 @@ public class Processor {
 
     @Override
     public String toString() {
-        return "[registers=" + Arrays.toString(register) +
+        return "[registers=" + toHexString(register) +
+                ", stack=" + toHexString(stack) +
                 ", programCounter=0x" + Integer.toHexString(programCounter) +
                 ", opcode=0x" + Integer.toHexString(opcode) +
                 ", indexRegister=0x" + Integer.toHexString(indexRegister) +
@@ -313,5 +314,16 @@ public class Processor {
                 ", delayTimer=0x" + Integer.toHexString(delayTimer) +
                 ", soundTimer=0x" + Integer.toHexString(soundTimer) +
                 "]";
+    }
+    
+    private String toHexString(int[] array) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("[");
+        for (int element : array) {
+            stringBuilder.append(Integer.toHexString(element));
+            stringBuilder.append(", ");
+        }
+        stringBuilder.append("]");
+        return stringBuilder.toString();
     }
 }

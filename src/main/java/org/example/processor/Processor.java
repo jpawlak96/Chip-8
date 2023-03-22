@@ -1,6 +1,5 @@
 package org.example.processor;
 
-import java.util.Arrays;
 import java.util.Random;
 
 public class Processor {
@@ -119,9 +118,7 @@ public class Processor {
                 cleanScreen();
                 return;
             case 0x00EE:
-                programCounter = stack[stackPointer];
-                if (stackPointer > 0)
-                    stackPointer--;
+                programCounter = stack[--stackPointer];
                 return;
         }
         switch (opcode & 0xF0FF) {
@@ -153,7 +150,7 @@ public class Processor {
                 return;
             case 0xF01E:
                 x = (opcode & 0x0F00) >>> 8;
-                indexRegister = (indexRegister + register[x]) & 0xFF;
+                indexRegister = (indexRegister + register[x]) & 0xFFF;
                 return;
             case 0xF029:
                 x = (opcode & 0x0F00) >>> 8;
@@ -214,9 +211,10 @@ public class Processor {
                 x = (opcode & 0x0F00) >>> 8;
                 y = (opcode & 0x00F0) >>> 4;
                 register[x] = register[x] - register[y];
+                register[0xF] = 1;
                 if (register[x] < 0x0) {
                     register[x] &= 0xFF;
-                    register[0xF] = 1;
+                    register[0xF] = 0;
                 }
                 return;
             case 0x8006:
@@ -228,14 +226,15 @@ public class Processor {
                 x = (opcode & 0x0F00) >>> 8;
                 y = (opcode & 0x00F0) >>> 4;
                 register[x] = register[y] - register[x];
+                register[0xF] = 1;
                 if (register[x] < 0x0) {
                     register[x] &= 0xFF;
-                    register[0xF] = 1;
+                    register[0xF] = 0;
                 }
                 return;
             case 0x800E:
                 x = (opcode & 0x0F00) >>> 8;
-                register[0xF] = register[x] & 0x80;
+                register[0xF] = (register[x] & 0x80) >>> 7;
                 register[x] = (register[x] * 2) & 0xFF;
                 return;
             case 0x9000:
@@ -250,8 +249,7 @@ public class Processor {
                 programCounter = opcode & 0x0FFF;
                 return;
             case 0x2000:
-                stackPointer++;
-                stack[stackPointer] = programCounter;
+                stack[stackPointer++] = programCounter;
                 programCounter = opcode & 0x0FFF;
                 return;
             case 0x3000:

@@ -67,7 +67,7 @@ class ProcessorTest {
     void shouldReturnFromSubroutineWhen00EEOpcode() {
         int instruction = 0x00EE;
 
-        processor.stackPointer = 0x0;
+        processor.stackPointer = 0x1;
         processor.stack[processor.stackPointer] = 0x1234;
         processor.opcode = instruction;
         processor.decodeInstruction();
@@ -98,7 +98,7 @@ class ProcessorTest {
         processor.decodeInstruction();
 
         assertEquals(oldStackPointer + 1, processor.stackPointer);
-        assertEquals(oldProgramCounter, processor.stack[processor.stackPointer]);
+        assertEquals(oldProgramCounter, processor.stack[processor.stackPointer - 1]);
         assertEquals(expectedAddress, processor.programCounter);
     }
 
@@ -266,7 +266,7 @@ class ProcessorTest {
         processor.decodeInstruction();
 
         assertEquals(registerXValue - registerYValue, processor.register[registerXSelector >>> 8]);
-        assertEquals(registerXValue - registerYValue < 0x0, processor.register[0xF] > 0);
+        assertEquals(registerXValue - registerYValue < 0x0, processor.register[0xF] == 0);
     }
 
     @Test
@@ -296,7 +296,7 @@ class ProcessorTest {
         processor.decodeInstruction();
 
         assertEquals(registerYValue - registerXValue, processor.register[registerXSelector >>> 8]);
-        assertEquals(registerYValue - registerXValue < 0x0, processor.register[0xF] > 0);
+        assertEquals(registerYValue - registerXValue < 0x0, processor.register[0xF] == 0);
     }
 
     @Test

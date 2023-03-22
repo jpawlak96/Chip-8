@@ -88,9 +88,11 @@ public class Window extends Application {
 
     private EventHandler<KeyEvent> getKeyEventEventHandler() {
         return event -> {
-            int keyIndex = keyMap.get(event.getCode().getCode());
-            boolean isPressed = event.getEventType().equals(KeyEvent.KEY_PRESSED);
-            processor.setKey(keyIndex, isPressed);
+            Integer keyIndex = keyMap.get(event.getCode().getCode());
+            if (keyIndex != null) {
+                boolean isPressed = KeyEvent.KEY_PRESSED.equals(event.getEventType());
+                processor.setKey(keyIndex, isPressed);
+            }
         };
     }
 

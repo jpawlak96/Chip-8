@@ -37,6 +37,7 @@ class ProcessorTest {
             }
         }
         assertTrue(isEmpty);
+        assertTrue(processor.isDisplayUpdated);
     }
 
     @Test
@@ -398,6 +399,7 @@ class ProcessorTest {
             assertEquals(sprite[y], spriteRow);
         }
         assertEquals(0, processor.register[0xF]);
+        assertTrue(processor.isDisplayUpdated);
     }
 
     @Test

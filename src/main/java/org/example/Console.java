@@ -11,7 +11,7 @@ import static org.example.processor.Processor.*;
 
 public class Console {
     private static final String FILENAME = "IBMLogo.ch8";
-    private static final int CYCLES_TO_EXECUTE = 1615;
+    private static final int CYCLES_TO_EXECUTE = 220;
     private static final char PIXEL_ON_CHAR = ' ';
     private static final char PIXEL_OFF_CHAR = '█';
     

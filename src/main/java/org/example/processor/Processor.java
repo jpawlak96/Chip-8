@@ -47,7 +47,7 @@ public class Processor {
     public Processor(byte[] program) {
         init(program);
     }
-        
+
     public void init(byte[] program) {
         isDisplayUpdated = true;
         delayTimer = 0x0;
@@ -85,6 +85,10 @@ public class Processor {
         return result;
     }
 
+    public void setKey(int index, boolean value) {
+        keys[index] = value;
+    }
+
     public boolean isSound() {
         return soundTimer > 0;
     }
@@ -113,6 +117,7 @@ public class Processor {
     }
 
     int waitForInput() {
+        // TODO: implement
         return 0;
     }
 
@@ -326,7 +331,7 @@ public class Processor {
                 ", soundTimer=0x" + Integer.toHexString(soundTimer) +
                 "]";
     }
-    
+
     private String toHexString(int[] array) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("[");

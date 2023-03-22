@@ -1,65 +1,103 @@
 package org.example;
 
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.application.Application;
+import javafx.scene.Group;
+import javafx.scene.Scene;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.stage.Stage;
+import javafx.util.Duration;
 import org.example.processor.Processor;
 
+import java.awt.*;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.example.processor.Processor.*;
+import static org.example.processor.Processor.DISPLAY_HEIGHT;
+import static org.example.processor.Processor.DISPLAY_WIDTH;
 
-public class Window {
-    private static final String FILENAME = "test_roms/test_opcode.ch8";
-    private static final int CYCLES_TO_EXECUTE = 220;
-    private static final char PIXEL_ON_CHAR = ' ';
-    private static final char PIXEL_OFF_CHAR = '█';
-    
-    private static int stepCounter = 0;
+public class Window extends Application {
+    private static final String FILENAME = "IBMLogo.ch8";
+
+    private static final double EMULATION_SPEED = 1.0 / 700; // 700 Hz
+    private static final double TIMERS_SPEED = 1.0 / 60; // 60 Hz
+
+    public static final int SCREEN_WIDTH = 512;
+    public static final int SCREEN_HEIGHT = 256;
+    public static final int RECTANGLE_WIDTH = SCREEN_WIDTH / DISPLAY_WIDTH;
+    public static final int RECTANGLE_HEIGHT = SCREEN_HEIGHT / DISPLAY_HEIGHT;
+
+    private final Rectangle[][] rectanglePool = new Rectangle[DISPLAY_WIDTH][DISPLAY_HEIGHT];
+    private final Group rectanglesGroup = new Group();
 
     private static Processor processor;
 
     public static void main(String[] args) throws IOException, URISyntaxException {
         byte[] program = loadProgram(FILENAME);
         processor = new Processor(program);
-        dumpMemory(false);
-        System.out.println("--- RUN PROGRAM ---");
-        for (int i = 0; i < CYCLES_TO_EXECUTE; i++) {
-            System.out.printf("Step: %d %s%n", stepCounter++, processor);
-            processor.doCycle();
-        }
-        System.out.println("--- END PROGRAM ---");
-        dumpScreen();
+        Application.launch(args);
     }
 
     private static byte[] loadProgram(String filename) throws IOException, URISyntaxException {
-        System.out.println("--- LOADING PROGRAM ---");
         Path path = Path.of(ClassLoader.getSystemResource(filename).toURI());
         return Files.readAllBytes(path);
     }
 
-    private static void dumpMemory(boolean dumpAll) {
-        System.out.println("--- MEMORY DUMP ---");
-        int[] memory = processor.getMemory();
-        int startAddress = dumpAll ? 0x0 : FIRST_PROG_INSTR_ADDRESS;
-        for (int index = startAddress; index < memory.length; index += 2) {
-            int code = (memory[index] << 8) | memory[index + 1];
-            if (code == 0) {
-                continue;
+    @Override
+    public void start(Stage stage) {
+        Scene scene = new Scene(rectanglesGroup, SCREEN_WIDTH, SCREEN_HEIGHT);
+        stage.setTitle("Chip-8");
+        stage.setScene(scene);
+        stage.show();
+
+        fillRectanglePool();
+        setTimeline();
+    }
+
+    private void fillRectanglePool() {
+        for (int x = 0; x < DISPLAY_WIDTH; x++) {
+            for (int y = 0; y < DISPLAY_HEIGHT; y++) {
+                Rectangle rectangle = new Rectangle(RECTANGLE_WIDTH * x, RECTANGLE_HEIGHT * y,
+                        RECTANGLE_WIDTH, RECTANGLE_HEIGHT);
+                rectangle.setStroke(Color.BLACK);
+                rectanglesGroup.getChildren().add(rectangle);
+                rectanglePool[x][y] = rectangle;
             }
-            System.out.printf("%03x: %04x%n", index, code);
         }
     }
 
-    private static void dumpScreen() {
-        System.out.println("--- SCREEN DUMP ---");
+    private void setTimeline() {
+        Timeline timersTimeline = new Timeline();
+        timersTimeline.setCycleCount(Animation.INDEFINITE);
+        timersTimeline.getKeyFrames().add(new KeyFrame(
+                Duration.seconds(TIMERS_SPEED),
+                t -> {
+                    processor.decrementTimers();
+                    if (processor.isDisplayUpdated()) draw();
+                    if (processor.isSound()) Toolkit.getDefaultToolkit().beep();
+                }
+        ));
+        timersTimeline.play();
+        Timeline cycleTimeline = new Timeline();
+        cycleTimeline.setCycleCount(Animation.INDEFINITE);
+        cycleTimeline.getKeyFrames().add(new KeyFrame(
+                Duration.seconds(EMULATION_SPEED),
+                t -> processor.doCycle()));
+        cycleTimeline.play();
+    }
+
+    private void draw() {
         boolean[][] display = processor.getDisplay();
-        for (int y = 0; y < DISPLAY_HEIGHT; y++) {
-            StringBuilder screenRow = new StringBuilder();
-            for (int x = 0; x < DISPLAY_WIDTH; x++) {
-                screenRow.append(display[x][y] ? PIXEL_ON_CHAR : PIXEL_OFF_CHAR);
+        for (int x = 0; x < DISPLAY_WIDTH; x++) {
+            for (int y = 0; y < DISPLAY_HEIGHT; y++) {
+                Color fill = display[x][y] ? Color.WHITE : Color.BLACK;
+                rectanglePool[x][y].setFill(fill);
             }
-            System.out.println(screenRow);
         }
     }
 }

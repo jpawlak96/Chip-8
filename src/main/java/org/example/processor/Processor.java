@@ -28,6 +28,8 @@ public class Processor {
 
     private static final Random randomGenerator = new Random();
 
+    boolean isDisplayUpdated;
+
     int delayTimer;
     int soundTimer;
 
@@ -47,6 +49,7 @@ public class Processor {
     }
         
     public void init(byte[] program) {
+        isDisplayUpdated = true;
         delayTimer = 0x0;
         soundTimer = 0x0;
         programCounter = FIRST_PROG_INSTR_ADDRESS;
@@ -76,6 +79,12 @@ public class Processor {
         return display;
     }
 
+    public boolean isDisplayUpdated() {
+        boolean result = isDisplayUpdated;
+        isDisplayUpdated = false;
+        return result;
+    }
+
     public boolean isSound() {
         return soundTimer > 0;
     }
@@ -100,6 +109,7 @@ public class Processor {
                 display[x][y] = false;
             }
         }
+        isDisplayUpdated = true;
     }
 
     int waitForInput() {
@@ -300,6 +310,7 @@ public class Processor {
                         }
                     }
                 }
+                isDisplayUpdated = true;
         }
     }
 

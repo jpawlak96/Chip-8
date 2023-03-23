@@ -1,5 +1,16 @@
 # CHIP-8-Emulator
-Basic implementation of chip-8[^1] emulator in Java. Currently, all interactions happen at the terminal
+![blinky_screenshot.jpg](assets%2Fblinky_screenshot.jpg)
+
+Basic implementation of Chip-8[^1] emulator in Java 17. Library used to handle screen, time and keyboard is JavaFX.
+
+### Requirement
+* Java 17+
+* Maven
+
+### Usage
+```bash
+mvn clean javafx:run
+```
 
 ### Changelog
 * 18.03.2023: Emulator support only few instructions needed to run the simplest program - IBM Logo.
@@ -83,5 +94,14 @@ Basic implementation of chip-8[^1] emulator in Java. Currently, all interactions
   ████████████████████████████████████████████████████████████████
   ████████████████████████████████████████████████████████████████
   ```
+* 22.02.2023: 
+  * After painstaking research and debugging, finally found issues with faulty instructions! 
+  * Added JavaFX. Now emulator looks much better :)
+  * Added keyboard and sound support, I am able to play all games.
+
+
+* 23.02.2023: 
+  * File chooser allows to select ROM before emulation. Rummaging through the source code is no longer needed to run programs.
+  * Refactor Window class by moving code to separate classes. Code looks more readable
 
 [^1]: https://en.wikipedia.org/wiki/CHIP-8

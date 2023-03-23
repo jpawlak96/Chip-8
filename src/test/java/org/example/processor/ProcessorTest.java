@@ -17,9 +17,9 @@ class ProcessorTest {
 
     @Test
     void shouldCleanScreenWhenCleanScreenTriggered() {
-        for (int x = 0; x < Processor.DISPLAY_WIDTH; x++) {
-            for (int y = 0; y < Processor.DISPLAY_HEIGHT; y++) {
-                processor.display[x][y] = true;
+        for (int x = 0; x < Processor.SCREEN_WIDTH; x++) {
+            for (int y = 0; y < Processor.SCREEN_HEIGHT; y++) {
+                processor.screen[x][y] = true;
             }
         }
 
@@ -27,16 +27,16 @@ class ProcessorTest {
 
         boolean isEmpty = true;
         testLoop:
-        for (int x = 0; x < Processor.DISPLAY_WIDTH; x++) {
-            for (int y = 0; y < Processor.DISPLAY_HEIGHT; y++) {
-                if (processor.display[x][y]) {
+        for (int x = 0; x < Processor.SCREEN_WIDTH; x++) {
+            for (int y = 0; y < Processor.SCREEN_HEIGHT; y++) {
+                if (processor.screen[x][y]) {
                     isEmpty = false;
                     break testLoop;
                 }
             }
         }
         assertTrue(isEmpty);
-        assertTrue(processor.isDisplayUpdated);
+        assertTrue(processor.isScreenUpdated);
     }
 
     @Test
@@ -392,13 +392,13 @@ class ProcessorTest {
         for (int y = 0; y < rows; y++) {
             int spriteRow = 0;
             for (int x = 0; x < 8; x++) {
-                int displayValue = processor.display[registerXInitValue + x][registerYInitValue + y] ? 1 : 0;
+                int displayValue = processor.screen[registerXInitValue + x][registerYInitValue + y] ? 1 : 0;
                 spriteRow += displayValue << x;
             }
             assertEquals(sprite[y], spriteRow);
         }
         assertEquals(0, processor.register[0xF]);
-        assertTrue(processor.isDisplayUpdated);
+        assertTrue(processor.isScreenUpdated);
     }
 
     @Test

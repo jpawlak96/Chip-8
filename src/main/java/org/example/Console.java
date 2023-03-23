@@ -54,10 +54,10 @@ public class Console {
 
     private static void dumpScreen() {
         System.out.println("--- SCREEN DUMP ---");
-        boolean[][] display = processor.getDisplay();
-        for (int y = 0; y < DISPLAY_HEIGHT; y++) {
+        boolean[][] display = processor.getScreen();
+        for (int y = 0; y < SCREEN_HEIGHT; y++) {
             StringBuilder screenRow = new StringBuilder();
-            for (int x = 0; x < DISPLAY_WIDTH; x++) {
+            for (int x = 0; x < SCREEN_WIDTH; x++) {
                 screenRow.append(display[x][y] ? PIXEL_ON_CHAR : PIXEL_OFF_CHAR);
             }
             System.out.println(screenRow);

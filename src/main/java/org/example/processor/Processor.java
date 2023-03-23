@@ -4,8 +4,8 @@ import java.util.Random;
 
 public class Processor {
     public static final int FIRST_PROG_INSTR_ADDRESS = 0x200;
-    public static final int DISPLAY_WIDTH = 64;
-    public static final int DISPLAY_HEIGHT = 32;
+    public static final int SCREEN_WIDTH = 64;
+    public static final int SCREEN_HEIGHT = 32;
 
     private static final int[] FONTS = new int[]{
             0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
@@ -28,7 +28,7 @@ public class Processor {
 
     private static final Random randomGenerator = new Random();
 
-    boolean isDisplayUpdated;
+    boolean isScreenUpdated;
 
     int delayTimer;
     int soundTimer;
@@ -41,7 +41,7 @@ public class Processor {
     int[] register;
     int[] stack;
     int[] memory;
-    boolean[][] display;
+    boolean[][] screen;
     boolean[] keys;
 
     public Processor() {
@@ -49,7 +49,7 @@ public class Processor {
     }
 
     public void init() {
-        isDisplayUpdated = true;
+        isScreenUpdated = true;
         delayTimer = 0x0;
         soundTimer = 0x0;
         programCounter = FIRST_PROG_INSTR_ADDRESS;
@@ -59,7 +59,7 @@ public class Processor {
         register = new int[16];
         stack = new int[16];
         memory = new int[4096];
-        display = new boolean[DISPLAY_WIDTH][DISPLAY_HEIGHT];
+        screen = new boolean[SCREEN_WIDTH][SCREEN_HEIGHT];
         keys = new boolean[16];
         cleanScreen();
     }
@@ -80,13 +80,13 @@ public class Processor {
         return memory;
     }
 
-    public boolean[][] getDisplay() {
-        return display;
+    public boolean[][] getScreen() {
+        return screen;
     }
 
-    public boolean isDisplayUpdated() {
-        boolean result = isDisplayUpdated;
-        isDisplayUpdated = false;
+    public boolean isScreenUpdated() {
+        boolean result = isScreenUpdated;
+        isScreenUpdated = false;
         return result;
     }
 
@@ -106,12 +106,12 @@ public class Processor {
     }
 
     void cleanScreen() {
-        for (int y = 0; y < DISPLAY_HEIGHT; y++) {
-            for (int x = 0; x < DISPLAY_WIDTH; x++) {
-                display[x][y] = false;
+        for (int y = 0; y < SCREEN_HEIGHT; y++) {
+            for (int x = 0; x < SCREEN_WIDTH; x++) {
+                screen[x][y] = false;
             }
         }
-        isDisplayUpdated = true;
+        isScreenUpdated = true;
     }
 
     void fetchInstruction() {
@@ -152,7 +152,7 @@ public class Processor {
                         return;
                     }
                 }
-                programCounter -=2;
+                programCounter -= 2;
                 return;
             case 0xF015:
                 x = (opcode & 0x0F00) >>> 8;
@@ -295,26 +295,26 @@ public class Processor {
                 register[x] = randomGenerator.nextInt(0xFF + 1) & (opcode & 0x00FF);
                 return;
             case 0xD000:
-                int xPos = register[(opcode & 0x0F00) >>> 8] % DISPLAY_WIDTH;
-                int yPos = register[(opcode & 0x00F0) >>> 4] % DISPLAY_HEIGHT;
+                int xPos = register[(opcode & 0x0F00) >>> 8] % SCREEN_WIDTH;
+                int yPos = register[(opcode & 0x00F0) >>> 4] % SCREEN_HEIGHT;
                 register[0xF] = 0;
                 for (int row = 0; row < (opcode & 0x000F); row++) {
                     int spriteByte = memory[indexRegister + row];
-                    int yOffset = (yPos + row) % DISPLAY_HEIGHT;
+                    int yOffset = (yPos + row) % SCREEN_HEIGHT;
                     for (int column = 0; column < 8; column++) {
                         int color = spriteByte & (0x1 << (7 - column));
                         if (color > 0) {
-                            int xOffset = (xPos + column) % DISPLAY_WIDTH;
-                            if (display[xOffset][yOffset]) {
-                                display[xOffset][yOffset] = false;
+                            int xOffset = (xPos + column) % SCREEN_WIDTH;
+                            if (screen[xOffset][yOffset]) {
+                                screen[xOffset][yOffset] = false;
                                 register[0xF] = 1;
                             } else {
-                                display[xOffset][yOffset] = true;
+                                screen[xOffset][yOffset] = true;
                             }
                         }
                     }
                 }
-                isDisplayUpdated = true;
+                isScreenUpdated = true;
         }
     }
 

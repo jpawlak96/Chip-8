@@ -8,12 +8,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 class ProcessorTest {
-    private final byte[] emptyProgram = new byte[]{};
     private Processor processor;
 
     @BeforeEach
     public void initProcessor() {
-        processor = spy(new Processor(emptyProgram));
+        processor = spy(Processor.class);
     }
 
     @Test

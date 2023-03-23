@@ -10,23 +10,21 @@ import javafx.scene.Scene;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.example.processor.Processor;
 
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Map;
 
 import static org.example.processor.Processor.DISPLAY_HEIGHT;
 import static org.example.processor.Processor.DISPLAY_WIDTH;
 
 public class Window extends Application {
-    private static final String FILENAME = "IBMLogo.ch8";
-
     private static final double EMULATION_SPEED = 1.0 / 700; // 700 Hz
     private static final double TIMERS_SPEED = 1.0 / 60; // 60 Hz
 
@@ -45,21 +43,17 @@ public class Window extends Application {
     private final Rectangle[][] rectanglePool = new Rectangle[DISPLAY_WIDTH][DISPLAY_HEIGHT];
     private final Group rectanglesGroup = new Group();
 
-    private static Processor processor;
+    private final Processor processor = new Processor();
 
-    public static void main(String[] args) throws IOException, URISyntaxException {
-        byte[] program = loadProgram(FILENAME);
-        processor = new Processor(program);
+    public static void main(String[] args) {
         Application.launch(args);
     }
 
-    private static byte[] loadProgram(String filename) throws IOException, URISyntaxException {
-        Path path = Path.of(ClassLoader.getSystemResource(filename).toURI());
-        return Files.readAllBytes(path);
-    }
-
     @Override
-    public void start(Stage stage) {
+    public void start(Stage stage) throws IOException {
+        byte[] program = getProgramFromFileChooser(stage);
+        processor.loadMemory(program);
+        
         Scene scene = new Scene(rectanglesGroup, SCREEN_WIDTH, SCREEN_HEIGHT);
         scene.setOnKeyPressed(getKeyEventEventHandler());
         scene.setOnKeyReleased(getKeyEventEventHandler());
@@ -69,6 +63,14 @@ public class Window extends Application {
 
         fillRectanglePool();
         setTimelines();
+    }
+
+    private byte[] getProgramFromFileChooser(Stage stage) throws IOException {
+        FileChooser fileChooser = new FileChooser();
+        FileChooser.ExtensionFilter extensionFilter = new FileChooser.ExtensionFilter("Chip-8", "*.ch8");
+        fileChooser.getExtensionFilters().addAll(extensionFilter);
+        File file = fileChooser.showOpenDialog(stage);
+        return Files.readAllBytes(file.toPath());
     }
 
     private EventHandler<KeyEvent> getKeyEventEventHandler() {

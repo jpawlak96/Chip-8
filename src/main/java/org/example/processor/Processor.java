@@ -44,11 +44,11 @@ public class Processor {
     boolean[][] display;
     boolean[] keys;
 
-    public Processor(byte[] program) {
-        init(program);
+    public Processor() {
+        init();
     }
 
-    public void init(byte[] program) {
+    public void init() {
         isDisplayUpdated = true;
         delayTimer = 0x0;
         soundTimer = 0x0;
@@ -61,9 +61,14 @@ public class Processor {
         memory = new int[4096];
         display = new boolean[DISPLAY_WIDTH][DISPLAY_HEIGHT];
         keys = new boolean[16];
-
-        loadMemory(program);
         cleanScreen();
+    }
+
+    public void loadMemory(byte[] program) {
+        System.arraycopy(FONTS, 0, memory, 0, FONTS.length);
+        for (int index = 0; index < program.length; index++) {
+            memory[FIRST_PROG_INSTR_ADDRESS + index] = program[index] & 0xFF;
+        }
     }
 
     public void doCycle() {
@@ -98,13 +103,6 @@ public class Processor {
             delayTimer--;
         if (soundTimer > 0)
             soundTimer--;
-    }
-
-    void loadMemory(byte[] program) {
-        System.arraycopy(FONTS, 0, memory, 0, FONTS.length);
-        for (int index = 0; index < program.length; index++) {
-            memory[FIRST_PROG_INSTR_ADDRESS + index] = program[index] & 0xFF;
-        }
     }
 
     void cleanScreen() {

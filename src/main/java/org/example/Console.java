@@ -14,14 +14,14 @@ public class Console {
     private static final int CYCLES_TO_EXECUTE = 220;
     private static final char PIXEL_ON_CHAR = ' ';
     private static final char PIXEL_OFF_CHAR = '█';
+
+    private static final Processor processor = new Processor();
     
     private static int stepCounter = 0;
 
-    private static Processor processor;
-
     public static void main(String[] args) throws IOException, URISyntaxException {
         byte[] program = loadProgram(FILENAME);
-        processor = new Processor(program);
+        processor.loadMemory(program);
         dumpMemory(false);
         System.out.println("--- RUN PROGRAM ---");
         for (int i = 0; i < CYCLES_TO_EXECUTE; i++) {
